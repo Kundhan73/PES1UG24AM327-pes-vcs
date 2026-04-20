@@ -46,7 +46,7 @@ bash test_sequence.sh
 
 Set your author identity before committing:
 ```bash
-export PES_AUTHOR="Your Name <PESXUG24CSYYY>"
+export PES_AUTHOR="Your Name <PESXUG24AMYYY>"
 ```
 
 ---
