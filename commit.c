@@ -194,8 +194,37 @@ int head_update(const ObjectID *new_commit) {
 //
 // Returns 0 on success, -1 on error.
 int commit_create(const char *message, ObjectID *commit_id_out) {
-    // TODO: Implement commit creation
-    // (See Lab Appendix for logical steps)
-    (void)message; (void)commit_id_out;
-    return -1;
+    Commit c;
+    memset(&c, 0, sizeof(c));
+
+    // Build tree from index
+    if (tree_from_index(&c.tree) != 0) {
+        fprintf(stderr, "error: nothing to commit (no staged files)\n");
+        return -1;
+    }
+
+    // Read parent (may not exist for first commit)
+    if (head_read(&c.parent) == 0) {
+        c.has_parent = 1;
+    } else {
+        c.has_parent = 0;
+    }
+
+    // Author and timestamp
+    snprintf(c.author, sizeof(c.author), "%s", pes_author());
+    c.timestamp = (uint64_t)time(NULL);
+
+    // Message
+    snprintf(c.message, sizeof(c.message), "%s", message);
+
+    // Serialize and write commit object
+    void *data;
+    size_t data_len;
+    if (commit_serialize(&c, &data, &data_len) != 0) return -1;
+    int rc = object_write(OBJ_COMMIT, data, data_len, commit_id_out);
+    free(data);
+    if (rc != 0) return -1;
+
+    // Update HEAD
+    return head_update(commit_id_out);
 }
